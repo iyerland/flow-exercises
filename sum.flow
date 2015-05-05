@@ -1,0 +1,30 @@
+import runtime;
+import string;
+
+fooWithFold(as : [int], initVal : int, fn : (a : int, b : int) -> int) -> int {
+	fold(as, initVal, fn);
+}
+
+foo(xs : [?], acc : ??, fn : (a : ??, b : ?) -> ??) -> ?? {
+	if (length(xs) == 0) {
+		acc 
+	} else {
+		foo(tail(xs), fn(acc, xs[0]), fn);
+	}
+}
+
+
+main() {
+	sum = fooWithFold([1,2,3,4], 0, \a, b -> a + b);
+	// Prints 10
+	println("sum : " + toString(sum)); 
+	assert(sum == 10, "fooWithFold failed!");
+
+	sum1 = foo([1,2,3,4], 0, \a, b -> a + b);
+	println("sum1 : " + toString(sum1)); 
+	assert(sum1 == 10, "foo<int> failed!");
+
+	sum2 = foo([1,2,3], "", \acc, i -> acc + i2s(i));
+	println("sum2 : " + sum2);
+	assert(sum2 == "123", "foo<string> failed");
+}

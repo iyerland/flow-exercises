@@ -1,0 +1,13 @@
+import renderform;
+import ui/easybutton;
+
+
+main() {
+	counter = make(0);
+	render(Lines([
+			Select(counter, \v -> Text(i2s(v), [FontSize(15.0)])),
+			TextButton("Click Me", \ -> {
+				next(counter, getValue(counter) + 1)
+			})
+		]));
+}

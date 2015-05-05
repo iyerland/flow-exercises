@@ -1,0 +1,20 @@
+import runtime;
+
+squareEven(as : [int]) -> [int] {
+	map(as, \a -> if (isEven(a)) square(a) else a)
+}
+
+isEven(a : int) -> bool {
+	a % 2 == 0;
+}
+
+square(a : int) -> int {
+	a * a;
+}
+
+main() {
+	arr1 = [1, 2, 3, 4, 6];
+	arr2 = squareEven(arr1);
+	println(squareEven([1,2,3,4,6])); // Prints [1,4,3,16,36]
+	assert(arr2 == [1,4,3,16,36], "squareEven() Failed! Output: " + toString(arr2));
+}

@@ -1,0 +1,205 @@
+import runtime;
+import list;
+import behaviour;  
+import transforms;
+import math;
+import inttree;
+import binarytree;
+
+export {
+	add1 : (int, int) -> int;	
+}
+
+
+add1(a, b) {
+	a + b;
+}
+
+add2(a: int, b: int) -> int {
+	a + b;
+}
+
+// structs
+MyStruct(arg1 : int, arg2 : double);
+
+
+myReverseList(ls : List<?>) -> List<?> {
+	myReverseAcc(ls, makeList());
+}
+
+myReverseAcc(ls : List<?>, acc : List<?>) -> List<?> {
+	switch (ls : List<?>) {
+		EmptyList() : acc;
+		Cons(h, t) : myReverseAcc(t, Cons(h, acc))
+	}
+}
+
+while(condition : () -> bool, action : () -> void) -> void {
+  if (condition()) {
+    action();
+    while(condition, action);
+  };
+}
+
+range(start: int, end: int, step: int) -> [int] {
+  i = ref start;
+  arr = ref [];
+  while(\ -> { ^i < end + step }, \ -> {
+    arr := arrayPush(^arr, ^i);
+    i := ^i + step;
+  });
+  ^arr;
+}
+
+string_constant = "<";
+
+main() {
+	println("Hello World!");
+	println(string_constant);
+	_a = 0x00000001;
+	println(_a);
+	bb: bool = true && true;
+	println("bb: bool = " + b2s(bb));
+	arr1: [int] = [1,2,3,4];
+	println("arr1: " + toString(arr1));
+
+	// map
+	sq = map(arr1, \a -> a*a);
+	println("square of arr1 using map(): sq =  " + toString(sq));
+	println("length of sq: " + toString(length(sq)));
+
+	// mapi
+	println("using mapi (replace first element by 0) on arr: " + toString(mapi(arr1, \a, v -> if (a == 0) 2 * v else v)));
+
+	// fold
+	println("using fold on arr1 to sum: " + toString(fold(arr1, 0, \x, y -> x+y)));
+
+	arr2: [int] = [25, 16, 32, 1, 5, 45, 23, 3, 10, 29];
+	println("arr2: " + toString(arr2));
+
+	// using fold to get min & max in a array
+	println("fold on arr2 to get min: " + toString(fold(arr2, 1000000000, \x, y -> if (x < y) x else y)));
+	println("fold on arr2 to get max: " + toString(fold(arr2, arr2[0], \x, y -> if (x > y) x else y)));
+
+	// replace
+	println("using replace to change the 0th element in arr2 to 1000: " + toString(replace(arr2, 0, 1000)));
+
+	// subrange
+	println("using subrange to get a slice of arr2(1, 4): " + toString(subrange(arr2, 1, 4)));
+
+	// references
+	r : ref double = ref 1.0;
+	println("^r: " + toString(^r));
+	old = ^r;
+	println("old = ^r results in old: " + toString(old));
+	r := 2.0;
+	println("r := 2.0 results in r: " + toString(^r));
+
+	// functions & lambdas
+	println("add1(int, int) -> int { a + b; }: " + toString(add1(1,2)));
+	println("add2(a: int, b: int) -> { a + b; }: " + toString(add2(1,2)));
+	add3 = \a, b -> a + b;
+	println("add3 = \\a, b -> a + b: " + toString(add3(1,2)));
+
+	// filter
+	f = filter(arr2, \x -> x <= 5);
+	println("filter elements from arr2 whose value is <= 5: " + toString(f));
+
+	// point-free call with the pipe-forward operator to calculate the sum of squares of even elements
+	ls = array2list([0,1,2,3,4,5,6,7,8,9]);
+	sumSqr = list2array(ls)
+		|> (\xs -> filter(xs, \x -> x % 2 == 0 ))
+		|> (\xs -> map(xs, \x -> x * x ))
+		|> (\xs -> fold(xs, 0, \a, b -> a + b ));
+	println("Using pipe-forward operator to calculate sum of squares of even elements of [0,1,2,3,4,5,6,7,8,9]: " + toString(sumSqr));
+
+	println(toString(MyStruct(1, 2.0)));
+
+	// a = MyPair(1, "text");
+	// switch (a : MyPair) {
+	// 	MyPair(first, second): {
+	// 		println(first);
+	// 		println(second);
+	// 	}
+	// }
+
+	// reverse a list
+	println("ls: please note this prints the reverse " + toString(ls));
+	rls = myReverseList(ls);
+	println("reverse of ls: " + toString(rls));
+
+	ii : int = 2147483647;
+	println("max int value : " + toString(ii));
+
+	println("length of arr1: " + toString(length(arr1)));
+	sel = make(1);
+	val = select(sel, \v -> println("In select : " + i2s(v)));
+
+	tree = makeIntTree();
+	tree := addOrUpdateIntTree(tree, 1, "Tim");
+	tree := addOrUpdateIntTree(tree, 2, "Narayan");
+	println(lookupIntTree(tree, 1));
+	println(lookupIntTree(tree, 2));
+	tree := addOrUpdateIntTree(tree, 1, "Tom");
+	println(lookupIntTree(tree, 1));
+
+	t0 = makeTree();
+	t1 = setTree(t0, "a", 1);
+	t2 = setTree(t1, "b", 2);
+	println(t2);
+	println(lookupTree(t2, "a"));
+	t3 = setTree(t2, "a", 99);
+	println(lookupTree(t3, "a"));
+	quit(0);
+
+	println(strSplit("a, b", ","));
+	println(i2s(intMax));
+	println(i2s(-intMax - 1));
+	code = 
+	"A = 2
+   PRINT A
+   A = A + 1
+   PRINT A";
+	 println(code);
+	 codes = strSplit(code, "\n");
+	 println(codes);
+	 newcodes = map(codes, \c -> trim2(c, " \t"));
+	 println(newcodes);
+	 println(trim(" flow "));
+	 code1 = "10 A = 1";
+	 println(code1);
+	 println(strSubRange(code1, 0, 2));
+	 println(code1);
+	 println(strSubRange(code1, 3, 8));
+	 println(isDigit("2"));
+	 println(isDigit("A"));
+	 println(isDigit("24"));
+	 println(isDigit("2A"));
+	 println(isDigits("24"));
+	 lines = [10, 20, 30, 40];
+	 res = ref makeTree();
+	 iter(lines, \line -> {
+	 	res := setTree(^res, i2s(line), line); 
+	 	{}
+	 	});
+	 codeTree = ^res;
+	 println(codeTree);
+	 println(lookupTree(codeTree, "10"));
+	 zz = ref 0;
+	 while (\ -> { ^zz < 10 }, \ -> {
+	   println(^zz);
+	   zz := ^zz + 1;
+	 });
+	 arrn = [];
+	 println(arrn);
+	 println(length(arrn));
+	 println(range(20, 40, 10));
+	 mutable zz1 = [1,2,3,4];
+	 println(zz1);
+	 zz1[4] = 99;
+	 println(zz1);
+	 zarr = ref zz1;
+	 println(^zarr[3]);
+	 zarr[3] := 99;
+	 println(zarr);
+}

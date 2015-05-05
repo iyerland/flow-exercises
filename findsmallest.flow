@@ -1,0 +1,31 @@
+import runtime;
+import math;
+
+findSmallestFold(as : [int]) -> int {
+	fold(as, intMax, \a, b -> min(a, b));
+}
+
+findSmallest(as : [int]) -> int {
+	findSmallestAcc(as, intMax);
+}
+
+findSmallestAcc(as : [int], acc : int) -> int {
+	if (length(as) == 0) {
+		acc 
+	} else {
+		findSmallestAcc(tail(as), if (as[0] < acc) as[0] else acc);
+	}
+}
+
+
+main() {
+	ls : [int] = [23, 12, 56, 26, 787, 23, 3, 24];
+	smallest : int = findSmallest(ls);
+	println("findSmallest " + toString(ls) + ": " + toString(smallest));
+	assert(smallest == 3, "Error in logic, " + toString(ls) + " is not the smallest!");
+
+	smallest1 : int = findSmallestFold(ls);
+	println("findSmallestFold " + toString(ls) + ": " + toString(smallest1));
+	assert(smallest1 == 3, "Error in logic, " + toString(ls) + " is not the smallest!");
+
+}
