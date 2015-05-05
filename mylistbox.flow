@@ -1,36 +1,28 @@
 import gui;
  
-MyListBox(items : [string], sel : DynamicBehaviour<int>) -> Form {
-	
-	defaultStyle = [FontSize(15.0), FillOpacity(0.5), BackgroundFill(0xFFFFFF)];
-	clickedStyle = [FontSize(15.0), FillOpacity(1.0), BackgroundFill(0x00FF00)];	
-	Lines(
-		mapi(items, \idx, item -> {
-			Button(
-				Select(sel, \v -> {
-					println("In Select : " + toString(v) + "/"  + item);
-					style = if (v == idx) clickedStyle else defaultStyle;			
-					Text(item, style);
-				}), \ -> {
-					println("Index of selected list box element: " + i2s(idx));
-					nextDistinct(sel, idx);
-				}
-			);
-		})
-	);
-}
  
+
 main() {
-	sel = make(-1);
+	selectedIdx = make(-1);
+	defaultStyle = [FontSize(15.0), FillOpacity(0.5), BackgroundFill(0xFFFFFF)];
+	clickedStyle = [FontSize(15.0), FillOpacity(1.0), BackgroundFill(0x00FF00)];
+
+	items = ["Arnie", "Asger", "Anshuman", "Narayan", "Seth", "Shon", "Tim", "Tom"];
+	isUpdated = mapi(items, \idx, item -> selectDistinct(selectedIdx, \v -> v == idx));
 	render(
-		MyListBox([
-			"Arnie",
-			"Asger",
-			"Anshuman",
-			"Narayan", 
-			"Seth",
-			"Shon",
-			"Tim",
-			"Tom"
-		], sel));
+		Lines(
+			mapi(items, \idx, item -> {
+				Button(
+					Select(isUpdated[idx], \v -> {
+						println("in Select, idx/v: " + i2s(idx) + "/" + b2s(v));
+						style = if (v) clickedStyle else defaultStyle;
+						Text(items[idx], style);
+					}), \-> {
+						println("name/idx clicked: " + items[idx] + "/" + i2s(idx));
+						nextDistinct(selectedIdx, idx);
+					}
+				)
+			})
+		)
+	);
 }
