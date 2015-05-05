@@ -1,0 +1,45 @@
+import lingo/pegcode/driver;
+import lingo/match;
+import basic;
+
+lingoGrammarOp : ref Maybe<[PegOp]> = ref None();
+
+lingoGrammar() {
+    // Prepare the grammar in the given file using flow syntax for inlining a string 
+    // from a file but be sure to only do this once
+    onlyOnce(lingoGrammarOp, \ -> {
+        compilePegGrammar("#include basic.lingo");
+    });
+}
+
+
+// Takes a basic program and parses it to an AST
+parseBasic(code : string) -> Program {
+  println("---------- PARSING BEGINS -------------");   
+  parsic(lingoGrammar(), code, defaultPegActions);
+}
+
+
+main() {
+  code = 
+// "10 A = 1 
+// 20 PRINT A 
+// 30 A = A + 1 
+// 40 IF A < 10 GOTO 20 ELSE PRINT 42
+// ";
+// "10 N = 6
+// 20 RESULT = 1
+// 30 IF N < 1 GOTO 120
+// 40 ADDEND = RESULT
+// 50 I = N
+// 60 IF I < 2 GOTO 100
+// 70 RESULT = RESULT + ADDEND
+// 80 I = I + -1
+// 90 GOTO 60
+// 100 N = N + -1
+// 110 GOTO 30
+// 120 PRINT RESULT
+// ";
+  program : Program = parseBasic(code);
+  quit(0);
+}

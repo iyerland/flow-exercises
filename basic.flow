@@ -1,0 +1,29 @@
+import binarytree;
+
+export {
+
+  Program : (lines : [Line]);
+  Line    : (n : int, c : Command);
+  Env     : (lines: [int], db: Tree, startLineNum: int, endLineNum: int, step: int);
+
+  Command ::= Assign, Print, IfElse, If, GoTo;
+  Exp     ::= Add, Sub, Neg, Mul, Div, Num, Id;
+
+  Assign  : (i: Id, e: Exp);
+  Print   : (e : Exp);  
+  IfElse  : (e: CExp, c1: Command, c2: Command);
+  If      : (e: CExp, c: Command);
+  GoTo    : (n: int); 
+
+  Add     : (e1: Exp, e2: Exp);
+  Sub     : (e1: Exp, e2: Exp);
+  Mul     : (e1: Exp, e2: Exp);
+  Div     : (e1: Exp, e2: Exp);
+  Neg     : (e: Exp);
+  CExp    : (e1: Exp, o: COp, e2: Exp);
+  COp     : (o : string);
+  Num     : (num : int);
+  String  : (str : string);
+  Id      : (str : string);
+
+ }

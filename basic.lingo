@@ -1,0 +1,49 @@
+program = ws line+:l { debug(Program(:l)) };
+
+line = int:n command:c { debug(Line(:n, :c)) };
+
+command = assign | print | ifelse | goto;
+
+assign = id:i "=" ws exp:e { debug(Assign(:i, :e)) };
+
+exp = '-'exp:e {debug(Neg(:e))} 
+	| prod:p '+' ws exp:e {debug(Add(:p,:e))} 
+	| prod:p '-' ws exp:e {debug(Sub(:p,:e))} 
+	| prod:p {debug(:p)};
+
+prod = atom:a '*' ws exp:e {debug(Mul(:a,:e))} 
+	| atom:a '/' ws exp:e {debug(Div(:a,:e))}
+	| atom;
+
+print = "PRINT" ws exp:e { debug(Print(:e)) };
+
+ifelse = "IF" ws cexp:e command:c1 "ELSE" ws command:c2 { debug(IfElse(:e, :c1, :c2)) }
+	| "IF" ws cexp:e command:c {debug(If(:e,:c))};
+
+cexp =  exp:e1 cOp:o exp:e2 { debug(CExp(:e1, :o, :e2)) };
+
+goto = "GOTO" ws int:n { debug(GoTo(:n))};
+
+atom = num:n {debug(:n)} | id:i {debug(:i)};
+
+id = (letter letterOrDigit*)$s ws { debug(Id($s)) };
+
+num = digit+$d ws { debug(Num(s2i($d))) };
+
+int = digit+$d ws { debug(s2i($d)) };
+
+cOp = condOp$s ws { debug(COp($s)) };
+
+condOp = "<" | ">" | "==" | "<=" | ">=" | "!=";
+
+letterOrDigit = 'a'-'z' | 'A'-'Z' | '_' | '0'-'9';
+
+letter = 'a'-'z' | 'A'-'Z' | '_';
+
+digit = '0'-'9';
+
+ws = s*;
+
+s = " " | "\t" | "\n";
+
+cr = "\n";
