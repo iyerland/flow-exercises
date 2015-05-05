@@ -1,0 +1,36 @@
+import gui;
+ 
+MyListBox(items : [string], sel : DynamicBehaviour<int>) -> Form {
+	
+	defaultStyle = [FontSize(15.0), FillOpacity(0.5), BackgroundFill(0xFFFFFF)];
+	clickedStyle = [FontSize(15.0), FillOpacity(1.0), BackgroundFill(0x00FF00)];	
+	Lines(
+		mapi(items, \idx, item -> {
+			Button(
+				Select(sel, \v -> {
+					println("In Select : " + toString(v) + "/"  + item);
+					style = if (v == idx) clickedStyle else defaultStyle;			
+					Text(item, style);
+				}), \ -> {
+					println("Index of selected list box element: " + i2s(idx));
+					nextDistinct(sel, idx);
+				}
+			);
+		})
+	);
+}
+ 
+main() {
+	sel = make(-1);
+	render(
+		MyListBox([
+			"Arnie",
+			"Asger",
+			"Anshuman",
+			"Narayan", 
+			"Seth",
+			"Shon",
+			"Tim",
+			"Tom"
+		], sel));
+}
