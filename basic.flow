@@ -52,8 +52,8 @@ execCommand(c: Command, env: Env) -> Env {
       startLineNum = env.origLineNums[0];
       endLineNum = env.origLineNums[length(env.origLineNums)-1];
       step = endLineNum/length(env.origLineNums);      
-      progCounter = range(n, endLineNum, step);
-      Env(progCounter, env.commandDB, env.kvDB, env.origLineNums);
+      progCounterReset = range(n, endLineNum, step);
+      Env(progCounterReset, env.commandDB, env.kvDB, env.origLineNums);
     }      
     NoOp() : env;    
   }
