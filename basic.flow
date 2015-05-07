@@ -6,21 +6,22 @@ export {
   Line    : (num : int, com : Command);
   Env     : (progCounter: [int], commandDB: Tree<string, Command>, kvDB: Tree<string, int> , origLineNums: [int]);
 
-  Command ::= Assign, Print, IfElse, If, GoTo, NoOp;
-  Exp     ::= Add, Sub, Neg, Mul, Div, Num, Id;
+  Command ::= Assign, Print, IfElse, Iff, GoTo, NoOp;
+  Exp     ::= Add, Sub, Neg, Mul, Div, Atom;
+  Atom    ::= Num, Id;
 
   Assign  : (i: Id, e: Exp);
   Print   : (e : Exp);  
   IfElse  : (e: CExp, c1: Command, c2: Command);
-  If      : (e: CExp, c: Command);
+  Iff      : (e: CExp, c: Command);
   GoTo    : (n: int); 
 
   Add     : (e1: Exp, e2: Exp);
   Sub     : (e1: Exp, e2: Exp);
   Mul     : (e1: Exp, e2: Exp);
   Div     : (e1: Exp, e2: Exp);
-  Neg     : (val: int);
-  CExp    : (e1: Exp, o: COp, e2: Exp);
+  Neg     : (a: Atom);
+  CExp    : (e1: Exp, op: COp, e2: Exp);
   COp     : (val : string);
   Num     : (val : int);
   String  : (val : string);
@@ -35,16 +36,26 @@ export {
 
 _eval(env: Env) -> Env {
   command = getCommand(lookupTree(env.commandDB, i2s(env.progCounter[0])));
-  switch(command : Command) {
-    Assign(id, ex)        : assign(id, ex, env);
-    Print(ex)             : {
+  execCommand(command, env);
+}
+
+execCommand(c: Command, env: Env) -> Env {
+  switch (c : Command) {
+    Assign(id, ex) : assign(id, ex, env);
+    Print(ex) : {
       print(ex, env);
       Env(tail(env.progCounter), env.commandDB, env.kvDB, env.origLineNums);        
     }
-    IfElse(con, tru, fls) : env; // ifElse(con, tru, fls, env);
-    If(con, tru)          : env; // iff(con, tru, env);
-    GoTo(line)            : env; // goto(line, env);
-    NoOp()                : env;
+    IfElse(con, tru, fls) : ifelse(con, tru, fls, env);
+    Iff(con, com) : iff(con, com, env);
+    GoTo(n) : {
+      startLineNum = env.origLineNums[0];
+      endLineNum = env.origLineNums[length(env.origLineNums)-1];
+      step = endLineNum/length(env.origLineNums);      
+      progCounter = range(n, endLineNum, step);
+      Env(progCounter, env.commandDB, env.kvDB, env.origLineNums);
+    }      
+    NoOp() : env;    
   }
 }
 
@@ -57,7 +68,7 @@ mprintln(msg: string, m: Maybe) -> void {
 
 getCommand(m: Maybe<Command>) -> Command {
   switch (m : Maybe<Command>) {
-    None() : NoOp;
+    None()  : NoOp();
     Some(v) : v;
   }
 }
@@ -69,19 +80,15 @@ getVal(m: Maybe<int>) -> int {
   }
 }
 
-ideval(id: string, env: Env) -> int {
-  getVal(lookupTree(env.kvDB, id));   
-}
-
 print(ex: Exp, env: Env) -> void {
   switch (ex : Exp) {
-    Num(n)      : println(n);
-    Id(id)      : println(getVal(lookupTree(env.kvDB, id)));   
-    Add(e1, e2) : println(add(e1, e2, env));
-    Sub(e1, e2) : println(sub(e1, e2, env));
-    Mul(e1, e2) : println(sub(e1, e2, env));
-    Div(e1, e2) : println(sub(e1, e2, env));
-    Neg(n)      : println(-n);
+    Num(n)      : println("> " + i2s(n));
+    Id(id)      : println("> " + i2s(getVal(lookupTree(env.kvDB, id))));   
+    Add(e1, e2) : println("> " + i2s(add(e1, e2, env)));
+    Sub(e1, e2) : println("> " + i2s(sub(e1, e2, env)));
+    Mul(e1, e2) : println("> " + i2s(mul(e1, e2, env)));
+    Div(e1, e2) : println("> " + i2s(div(e1, e2, env)));
+    Neg(a)      : println("> " + i2s(neg(a, env)));
   }
 }
 
@@ -116,9 +123,118 @@ assign(id: Id, ex: Exp, env: Env) -> Env {
       updatedkvDB = setTree(env.kvDB, id.val, res);
       Env(tail(env.progCounter), env.commandDB, updatedkvDB, env.origLineNums);       
     }
-    Neg(n)      : {
-      updatedkvDB = setTree(env.kvDB, id.val, -n);
-      Env(tail(env.progCounter), env.commandDB, updatedkvDB, env.origLineNums);       
+    Neg(a)      : {
+      res = neg(a, env);
+      updatedkvDB = setTree(env.kvDB, id.val, res);
+      Env(tail(env.progCounter), env.commandDB, updatedkvDB, env.origLineNums);          
+    }
+  }
+}
+
+neg(a: Atom, env: Env) -> int {
+  switch (a : Atom) {
+    Id(i) : {
+      ival  = getVal(lookupTree(env.kvDB, i));
+      -ival;
+    }
+    Num(n) : -n;
+  }
+}
+
+iff(c: CExp, tru: Command, env: Env) -> Env {
+  comparisonOp = c.op.val;
+  comparisonResult = 
+  switch (c.e1 : Exp) {
+    Id(i) : {
+      lval  = getVal(lookupTree(env.kvDB, i));
+      switch (c.e2 : Exp) {
+        Id(ii) : {             
+          rval = getVal(lookupTree(env.kvDB, ii));
+          compare(comparisonOp, lval, rval)
+        } 
+        Num(nn) : {
+          compare(comparisonOp, lval, nn); 
+        }
+        default : false;  
+      } 
+    }
+    Num(n) : {
+      switch (c.e2 : Exp) {
+        Id(i) : {
+          rval = getVal(lookupTree(env.kvDB, i));
+          compare(comparisonOp, n, rval);
+        }
+        Num(nn) : compare(comparisonOp, n, nn);
+        default : false;
+      }
+    }
+    default : false;  
+  }
+
+  if (comparisonResult) {
+    execCommand(tru, env);
+  } else {
+    Env(tail(env.progCounter), env.commandDB, env.kvDB, env.origLineNums);              
+  }
+}
+
+ifelse(c: CExp, tru: Command, fls: Command, env: Env) -> Env {
+  comparisonOp = c.op.val;
+  comparisonResult = 
+  switch (c.e1 : Exp) {
+    Id(i) : {
+      lval  = getVal(lookupTree(env.kvDB, i));
+      switch (c.e2 : Exp) {
+        Id(ii) : {             
+          rval = getVal(lookupTree(env.kvDB, ii));
+          compare(comparisonOp, lval, rval);
+        } 
+        Num(nn) : {
+          compare(comparisonOp, lval, nn); 
+        }
+        default : false;  
+      } 
+    }
+    Num(n) : {
+      switch (c.e2 : Exp) {
+        Id(i) : {
+          rval = getVal(lookupTree(env.kvDB, i));
+          compare(comparisonOp, n, rval);
+        }
+        Num(nn) : compare(comparisonOp, n, nn);
+        default : false;
+      }
+    }
+    default : false;  
+  }
+
+  if (comparisonResult) {
+    execCommand(tru, env);
+  } else {
+    execCommand(fls, env);
+  }
+}
+
+compare(comparisonOp: string, lval: int, rval: int) -> bool {
+  if (comparisonOp == "<") {
+    lval < rval;
+  } else {
+    if (comparisonOp == ">") {
+      lval > rval;
+    } else {
+      if (comparisonOp == "==") {
+        lval == rval;
+      } else {
+        if (comparisonOp == "!=") {
+          lval != rval;
+        } else {
+          if (comparisonOp == "<=") {
+            lval <= rval;
+          } else {
+            lval >= rval;
+          }
+        }
+      }
     }
   }
 }
@@ -127,15 +243,16 @@ add(e1: Exp, e2: Exp, env: Env) -> int {
   switch (e1 : Exp) {
     Id(i) : {
       ival  = getVal(lookupTree(env.kvDB, i));
-      println(ival);
       switch (e2 : Exp) {
         Id(ii) : {             
           iival = getVal(lookupTree(env.kvDB, ii));
           ival + iival;
         } 
         Num(nn) : {
-          println(ival + nn);
           ival + nn;      
+        }
+        Neg(nn) : {
+          ival + neg(nn, env);
         }
         default : -intMax;  
       }      
@@ -147,8 +264,20 @@ add(e1: Exp, e2: Exp, env: Env) -> int {
           n + iival;
         }
         Num(nn) : n + nn;
+        Neg(nn) : n + neg(nn, env);
         default : -intMax;
       }
+    }
+    Neg(n) : {
+      switch (e2 : Exp) {
+        Id(ii) : {
+          iival = getVal(lookupTree(env.kvDB, ii));
+          neg(n, env) + iival;
+        }
+        Num(nn) : neg(n, env) + nn;
+        Neg(nn) : neg(n, env) + neg(nn, env);
+        default : -intMax;
+      }    
     }
     default : -intMax;
   }
@@ -164,6 +293,7 @@ sub(e1: Exp, e2: Exp, env: Env) -> int {
           ival - iival;
         } 
         Num(nn) : ival - nn;      
+        Neg(nn) : ival - neg(nn, env);
         default : -intMax;  
       }      
     }
@@ -174,9 +304,21 @@ sub(e1: Exp, e2: Exp, env: Env) -> int {
           n - iival;
         }
         Num(nn) : n - nn;
+        Neg(nn) : n - neg(nn, env);
         default : -intMax;
       }
     }
+    Neg(n) : {
+      switch (e2 : Exp) {
+        Id(ii) : {
+          iival = getVal(lookupTree(env.kvDB, ii));
+          neg(n, env) - iival;
+        }
+        Num(nn) : neg(n, env) - nn;
+        Neg(nn) : neg(n, env) - neg(nn, env);
+        default : -intMax;
+      }    
+    }   
     default : -intMax;
   }
 }
@@ -190,7 +332,8 @@ mul(e1: Exp, e2: Exp, env: Env) -> int {
           iival = getVal(lookupTree(env.kvDB, ii));
           ival * iival;
         } 
-        Num(nn) : ival * nn;      
+        Num(nn) : ival * nn;  
+        Neg(nn) : ival * neg(nn, env);    
         default : -intMax;  
       }      
     }
@@ -201,8 +344,20 @@ mul(e1: Exp, e2: Exp, env: Env) -> int {
           n * iival;
         }
         Num(nn) : n * nn;
+        Neg(nn) : n * neg(nn, env);
         default : -intMax;
       }
+    }
+    Neg(n) : {
+      switch (e2 : Exp) {
+        Id(ii) : {
+          iival = getVal(lookupTree(env.kvDB, ii));
+          neg(n, env) * iival;
+        }
+        Num(nn) : neg(n, env) * nn;
+        Neg(nn) : neg(n, env) * neg(nn, env);
+        default : -intMax;
+      }    
     }
     default : -intMax;
   }
@@ -217,7 +372,8 @@ div(e1: Exp, e2: Exp, env: Env) -> int {
           iival = getVal(lookupTree(env.kvDB, ii));
           ival / iival;
         } 
-        Num(nn) : ival / nn;      
+        Num(nn) : ival / nn;   
+        Neg(nn) : ival / neg(nn, env);   
         default : -intMax;  
       }      
     }
@@ -228,8 +384,20 @@ div(e1: Exp, e2: Exp, env: Env) -> int {
           n / iival;
         }
         Num(nn) : n / nn;
+        Neg(nn) : n / neg(nn, env);
         default : -intMax;
       }
+    }
+    Neg(n) : {
+      switch (e2 : Exp) {
+        Id(ii) : {
+          iival = getVal(lookupTree(env.kvDB, ii));
+          neg(n, env) / iival;
+        }
+        Num(nn) : neg(n, env) / nn;
+        Neg(nn) : neg(n, env) / neg(nn, env);
+        default : -intMax;
+      }    
     }
     default : -intMax;
   }
