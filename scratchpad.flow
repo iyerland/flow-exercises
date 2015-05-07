@@ -190,16 +190,7 @@ main() {
 	   println(^zz);
 	   zz := ^zz + 1;
 	 });
-	 arrn = [];
-	 println(arrn);
-	 println(length(arrn));
-	 println(range(20, 40, 10));
-	 mutable zz1 = [1,2,3,4];
-	 println(zz1);
-	 zz1[4] = 99;
-	 println(zz1);
-	 zarr = ref zz1;
-	 println(^zarr[3]);
-	 zarr[3] := 99;
-	 println(zarr);
+	 arr99 = [10,20,30,40];
+	 println(removeIndex(arr99, 0));
+	 println(arr99);
 }
