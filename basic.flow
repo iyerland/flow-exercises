@@ -52,7 +52,7 @@ execCommand(c: Command, env: Env) -> Env {
       startLineNum = env.origLineNums[0];
       endLineNum = env.origLineNums[length(env.origLineNums)-1];
       step = endLineNum/length(env.origLineNums);      
-      progCounterReset = range(n, endLineNum, step);
+      progCounterReset = generateProgramCounterSequence(n, endLineNum, step);
       Env(progCounterReset, env.commandDB, env.kvDB, env.origLineNums);
     }      
     NoOp() : env;    
@@ -403,62 +403,6 @@ div(e1: Exp, e2: Exp, env: Env) -> int {
   }
 }
 
-
-// increment(l: String, r: Int, e: Env) -> Env {
-//   val = getVal(lookupTree(e.db, l.strVal));
-//   newVal = val + r.intVal;
-//   updatedDB = setTree(e.db, l.strVal, newVal);
-//   Env(tail(e.lines), updatedDB, e.startLineNum, e.endLineNum, e.step);
-// }
-
-// printVar(s: String, e: Env) -> Env {
-//   mprintln("", lookupTree(e.db, s.strVal));
-//   Env(tail(e.lines), e.db, e.startLineNum, e.endLineNum, e.step);
-// }
-
-// printVal(i: Int, e: Env) -> Env {
-//   println(i.intVal);
-//   Env(tail(e.lines), e.db, e.startLineNum, e.endLineNum, e.step);
-// }
-
-// goto(l: Int, e: Env) -> Env {
-//   Env(tail(e.lines), e.db, e.startLineNum, e.endLineNum, e.step);
-// }
-
-// noOp(e: Env) -> Env {
-//   Env(tail(e.lines), e.db, e.startLineNum, e.endLineNum, e.step);  
-// }
-
-// ifElse(c: Condition, t: Command, f: Command, e: Env) -> Env {
-//   lhsVal = getVal(lookupTree(e.db, c.lhs.strVal));
-//   condVal = if (c.op.strVal == "<") {
-//     lhsVal < c.rhs.intVal;
-//   } else {
-//     if (c.op.strVal == ">") {
-//       lhsVal > c.rhs.intVal;
-//     } else {
-//       lhsVal == c.rhs.intVal;
-//     }
-//   }
-//   if (condVal) {
-//     switch (t : Command) {
-//       GoTo(n) : {            
-//         Env(range(n.intVal, e.endLineNum, e.step), e.db, e.startLineNum, e.endLineNum, e.step);
-//       }
-//       PrintVal(n): printVal(n, e);
-//       PrintVar(s) : printVar(s, e);
-//       Increment(l, r) : increment(l, r, e);
-//       Assignment(l, r) : assignment(l, r, e);
-//       IfElse(co, ot, of): {
-//         Env(tail(e.lines), e.db, e.startLineNum, e.endLineNum, e.step);
-//       }
-//       NoOp() : noOp(e);
-//     }
-//   } else {        
-//     Env(tail(e.lines), e.db, e.startLineNum, e.endLineNum, e.step);
-//   }
-// }
-
 while(condition : () -> bool, action : () -> void) -> void {
   if (condition()) {
     action();
@@ -466,7 +410,7 @@ while(condition : () -> bool, action : () -> void) -> void {
   };
 }
 
-range(start: int, end: int, step: int) -> [int] {
+generateProgramCounterSequence(start: int, end: int, step: int) -> [int] {
   i = ref start;
   arr = ref [];
   while(\ -> { ^i < end + step }, \ -> {
