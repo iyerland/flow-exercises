@@ -19,27 +19,63 @@ parseBasic(code : string) -> Program {
   parsic(lingoGrammar(), code, defaultPegActions);
 }
 
+runBasic(p: Program) -> void {
+ println("---------- PARSING ENDS -------------");   
+ println("----------  RUN BEGINS  -------------");
+ lineNumbers = map(p.code, \line -> line.num);
+ db = ref makeTree();
+ iter(p.code, \line -> {
+    db := setTree(^db, i2s(line.num), line.com);
+    {}
+ });
+ // startLineNum = lineNumbers[0];
+ // endLineNum = lineNumbers[length(lineNumbers)-1];
+ // step = endLineNum/length(lineNumbers);
+
+  env = ref Env(lineNumbers, ^db, makeTree(), lineNumbers);
+
+  while (\ -> {length(^env.progCounter) != 0}, \ -> {
+    env := _eval(^env);
+  });
+  println("----------   RUN ENDS   -------------");
+}
+
 
 main() {
-  code = 
-// "10 A = 1 
-// 20 PRINT A 
-// 30 A = A + 1 
-// 40 IF A < 10 GOTO 20 ELSE PRINT 42
-// ";
-// "10 N = 6
-// 20 RESULT = 1
-// 30 IF N < 1 GOTO 120
-// 40 ADDEND = RESULT
-// 50 I = N
-// 60 IF I < 2 GOTO 100
-// 70 RESULT = RESULT + ADDEND
-// 80 I = I + -1
-// 90 GOTO 60
-// 100 N = N + -1
-// 110 GOTO 30
-// 120 PRINT RESULT
-// ";
-  program : Program = parseBasic(code);
+
+  printnum =
+"10 PRINT 1 + 4
+";
+
+  assigne =
+"10 A = 20
+20 PRINT A
+30 A = A + 10
+40 PRINT A
+";
+
+  ifelse = 
+"10 A = 1 
+20 PRINT A 
+30 A = A + 1 
+40 IF A < 10 GOTO 20 ELSE PRINT 42
+";
+
+  code =
+"10 N = 6
+20 RESULT = 1
+30 IF N < 1 GOTO 120
+40 ADDEND = RESULT
+50 I = N
+60 IF I < 2 GOTO 100
+70 RESULT = RESULT + ADDEND
+80 I = I + -1
+90 GOTO 60
+100 N = N + -1
+110 GOTO 30
+120 PRINT RESULT
+";
+  program : Program = parseBasic(assigne);
+  runBasic(program);
   quit(0);
 }
