@@ -23,13 +23,14 @@ runBasic(p: Program) -> void {
   println("---------- PARSING ENDS -------------");   
   println("----------  RUN BEGINS  -------------");
   lineNumbers = map(p.code, \line -> line.num);
-  db = ref makeTree();
+  commandDB = ref makeTree();
+  kvDB = makeTree();
   iter(p.code, \line -> {
-    db := setTree(^db, i2s(line.num), line.com);
+    commandDB := setTree(^commandDB, i2s(line.num), line.com);
     {}
   });
 
-  env = ref Env(lineNumbers, ^db, makeTree(), lineNumbers);
+  env = ref Env(lineNumbers, ^commandDB, kvDB, lineNumbers);
 
   while (\ -> {length(^env.progCounter) != 0}, \ -> {
     env := _eval(^env);
